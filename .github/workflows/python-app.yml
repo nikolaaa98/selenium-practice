@@ -1,0 +1,143 @@
+name: Selenium Tests
+
+# When to run:
+# - Manually via the "Run workflow" button (checkboxes below let you pick browsers & headless).
+# - On push / PR to main branches (defaults to Chrome only, headless).
+on:
+  workflow_dispatch:
+    inputs:
+      chrome:
+        description: "Run tests on Chrome"
+        type: boolean
+        default: true
+      firefox:
+        description: "Run tests on Firefox"
+        type: boolean
+        default: false
+      edge:
+        description: "Run tests on Microsoft Edge"
+        type: boolean
+        default: false
+      headless:
+        description: "Run browsers in headless mode"
+        type: boolean
+        default: true
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  # -------------------------------------------------------------------------
+  # 1) Build the list of browsers to test based on the workflow_dispatch inputs.
+  #    For push / PR events we fall back to Chrome only, headless.
+  # -------------------------------------------------------------------------
+  setup:
+    name: Determine test matrix
+    runs-on: ubuntu-latest
+    outputs:
+      browsers: ${{ steps.select.outputs.browsers }}
+      headless: ${{ steps.select.outputs.headless }}
+    steps:
+      - id: select
+        name: Select browsers & headless mode
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            browsers=()
+            [[ "${{ inputs.chrome }}"  == "true" ]] && browsers+=("chrome")
+            [[ "${{ inputs.firefox }}" == "true" ]] && browsers+=("firefox")
+            [[ "${{ inputs.edge }}"    == "true" ]] && browsers+=("edge")
+
+            if [[ ${#browsers[@]} -eq 0 ]]; then
+              echo "::warning::No browser selected — falling back to Chrome only."
+              browsers=("chrome")
+            fi
+
+            headless="${{ inputs.headless }}"
+          else
+            # push / pull_request → sensible defaults
+            browsers=("chrome")
+            headless="true"
+          fi
+
+          json=$(printf '%s\n' "${browsers[@]}" | jq -R . | jq -sc .)
+          echo "browsers=$json"   >> "$GITHUB_OUTPUT"
+          echo "headless=$headless" >> "$GITHUB_OUTPUT"
+
+          echo "▶ Browsers to test : $json"
+          echo "▶ Headless mode    : $headless"
+
+  # -------------------------------------------------------------------------
+  # 2) Run the test suite once per selected browser (parallel matrix).
+  # -------------------------------------------------------------------------
+  test:
+    name: Tests · ${{ matrix.browser }}
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ${{ fromJSON(needs.setup.outputs.browsers) }}
+    env:
+      # --- Test configuration (read by config/config.py) --------------------
+      BROWSER: ${{ matrix.browser }}
+      HEADLESS: ${{ needs.setup.outputs.headless }}
+
+      # --- Hardcoded credentials for the-internet.herokuapp.com -------------
+      # These are the public demo credentials from the target site, safe to commit.
+      VALID_USERNAME: tomsmith
+      VALID_PASSWORD: SuperSecretPassword!
+      INVALID_USERNAME: wrong_user
+      INVALID_PASSWORD: wrong_password
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # --- Install only the browser needed for this matrix job ---------------
+      - name: Set up Google Chrome
+        if: matrix.browser == 'chrome'
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Set up Mozilla Firefox
+        if: matrix.browser == 'firefox'
+        uses: browser-actions/setup-firefox@v1
+        with:
+          firefox-version: latest
+
+      - name: Set up Microsoft Edge
+        if: matrix.browser == 'edge'
+        uses: browser-actions/setup-edge@v1
+        with:
+          edge-version: stable
+
+      - name: Run Selenium tests (${{ matrix.browser }}, headless=${{ needs.setup.outputs.headless }})
+        run: |
+          pytest \
+            --html=reports/report-${{ matrix.browser }}.html \
+            --self-contained-html
+
+      # --- Always upload the report, even if tests fail ----------------------
+      - name: Upload test report & artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-${{ matrix.browser }}
+          path: |
+            reports/
+            screenshots/
+            logs/
+          if-no-files-found: warn
+          retention-days: 14
