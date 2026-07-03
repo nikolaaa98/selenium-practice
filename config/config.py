@@ -18,8 +18,8 @@ class Config:
     PAGE_LOAD_TIMEOUT = 30
     
     # Browser configuration
-    DEFAULT_BROSWER = "chrome"
-    DEFAULT_HEADLESS = False
+    DEFAULT_BROSWER = os.getenv("BROWSER", "chrome")
+    DEFAULT_HEADLESS = os.getenv("HEADLESS", "False").lower() in ("true", "1", "yes", "no")
 
     # DIRECTORIES
     SCREENSHOTS_DIR = "screenshots"
