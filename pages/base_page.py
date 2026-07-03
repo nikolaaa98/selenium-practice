@@ -4,6 +4,7 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 from config.config import Config
 from utils.logger import get_logger
+from selenium.webdriver import ActionChains
 
 logger = get_logger(__name__)
 
@@ -12,6 +13,7 @@ class BasePage:
     def __init__(self, driver):
         self.driver = driver
         self.wait = WebDriverWait(driver, Config.EXPLICIT_WAIT)
+        self.actions = ActionChains(driver) 
 
     def open(self, url):
         logger.info(f"Opening URL: {url}")
