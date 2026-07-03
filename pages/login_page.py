@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By # find element by different paramete
 from pages.base_page import BasePage
 from config.config import Config
 
-class LoginBage(BasePage):
+class LoginPage(BasePage):
     URL = f"{Config.BASE_URL}/login"
 
     LOGIN_FORM = (By.ID, "login")
@@ -24,7 +24,8 @@ class LoginBage(BasePage):
         self.type(self.USERNAME_INPUT, username)
 
     def enter_password(self, password):
-        self.type(self.PASSWORD_INPUT, password)
+        # Mark as sensitive so it does not appear in logs/reports
+        self.type(self.PASSWORD_INPUT, password, sensitive=True)
 
     def click_login(self):
         self.click(self.LOGIN_BUTTON)
@@ -38,4 +39,4 @@ class LoginBage(BasePage):
         return self.get_text(self.FLASH_MESSAGE)
     
     def is_logged_in(self):
-        return self.is_element_present(self.LOGOUT_BUTTON)  
+        return self.is_element_present_now(self.LOGOUT_BUTTON)  
