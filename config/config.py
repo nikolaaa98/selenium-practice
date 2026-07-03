@@ -1,6 +1,13 @@
 """
     CENTRAL FRAMEWORK CONFIGURATION FILE
 """
+import os
+
+from dotenv import load_dotenv
+
+# Load environment variables from .env file (project root)
+load_dotenv()
+
 
 class Config:
     BASE_URL = "https://the-internet.herokuapp.com"
@@ -18,3 +25,9 @@ class Config:
     SCREENSHOTS_DIR = "screenshots"
     REPORTS_DIR = "reports"
     LOG_DIR = "logs"
+
+    # CREDENTIALS (loaded from .env - never commit real values)
+    VALID_USERNAME = os.getenv("VALID_USERNAME", "")
+    VALID_PASSWORD = os.getenv("VALID_PASSWORD", "")
+    INVALID_USERNAME = os.getenv("INVALID_USERNAME", "wrong_user")
+    INVALID_PASSWORD = os.getenv("INVALID_PASSWORD", "wrong_password")
