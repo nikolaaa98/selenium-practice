@@ -1,33 +1,24 @@
+import pytest
+
 from config.config import Config
 from pages.login_page import LoginPage
 
-def test_succesfull_login(driver):
-    login_page = LoginPage(driver)
+LOGIN_DATA = [
+    (Config.VALID_USERNAME, Config.VALID_PASSWORD, "You logged into a secure area!", True, "valid credentials"),
+    (Config.INVALID_USERNAME, Config.VALID_PASSWORD, "Your username is invalid!", False, "invalid username"),
+    (Config.VALID_USERNAME, Config.INVALID_PASSWORD, "Your password is invalid!", False, "invalid password"),
+    ("", "", "Your username is invalid!", False, "empty credentials")
+]
 
-    login_page.open()
-    login_page.login(Config.VALID_USERNAME, Config.VALID_PASSWORD)
-    assert "You logged into a secure area!" in login_page.get_flash_message()
-    assert login_page.is_logged_in()
-
-def test_failed_login_wrong_username(driver):
-    login_page = LoginPage(driver)
-
-    login_page.open()
-    login_page.login(Config.INVALID_USERNAME, Config.VALID_PASSWORD)
-    assert "Your username is invalid!" in login_page.get_flash_message()
-    assert not login_page.is_logged_in()
-
-def test_failed_login_wrong_password(driver):
-    login_page = LoginPage(driver)
-
-    login_page.open()
-    login_page.login(Config.VALID_USERNAME, Config.INVALID_PASSWORD)
-    assert "Your password is invalid!" in login_page.get_flash_message()
-    assert not login_page.is_logged_in()
-
-def test_empty_credentials(driver):
+@pytest.mark.parametrize(
+        "username, password, expected_message, should_be_logged_in",
+        [(u, p, m, l) for (u, p, m, l, _) in LOGIN_DATA],
+        ids=[tid for (*_, tid) in LOGIN_DATA],
+)
+def test_login(driver, username, password, expected_message, should_be_logged_in):
     login_page = LoginPage(driver)
     login_page.open()
-    login_page.click_login()
+    login_page.login(username, password)
 
-    assert "Your username is invalid!" in login_page.get_flash_message()
+    assert expected_message in login_page.get_flash_message()
+    assert login_page.is_logged_in() == should_be_logged_in
