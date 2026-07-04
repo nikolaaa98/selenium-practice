@@ -1,0 +1,8 @@
+keyword,locator_type,locator,value
+open_browser,,,chrome
+navigate,,,https://the-internet.herokuapp.com/login
+type,id,username,tomsmith
+type,id,password,SuperSecretPassword!
+click,css,button[type='submit'],
+verify_text,css,.flash.success,You logged into a secure area!
+close_browser,,,
