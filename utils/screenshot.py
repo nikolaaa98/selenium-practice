@@ -30,4 +30,4 @@ def take_screenshot(driver, test_name: str) -> Optional[str]:  # <-- Promenjeno 
         return file_path
     except Exception as e:
         logger.error(f"Failed to take screenshot: {e}")
-        return Noneå
+        return None
