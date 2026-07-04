@@ -10,6 +10,10 @@ LOGIN_DATA = [
     ("", "", "Your username is invalid!", False, "empty credentials")
 ]
 
+@pytest.mark.smoke
+@pytest.mark.sanity
+@pytest.mark.regression
+@pytest.mark.login
 @pytest.mark.parametrize(
         "username, password, expected_message, should_be_logged_in",
         [(u, p, m, l) for (u, p, m, l, _) in LOGIN_DATA],
