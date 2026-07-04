@@ -23,7 +23,7 @@ on:
         type: boolean
         default: true
       tags:
-        desription: "Run only tests with these tags (e.g. smoke, regression). Leave empty to run all tests."
+        description: "Run only tests with these tags (e.g. smoke, regression). Leave empty to run all tests."
         type: string
         default: ''
 
@@ -43,6 +43,7 @@ jobs:
     outputs:
       browsers: ${{ steps.select.outputs.browsers }}
       headless: ${{ steps.select.outputs.headless }}
+      tags: ${{ steps.select.outputs.tags }}
     steps:
       - id: select
         name: Select browsers & headless mode
@@ -59,18 +60,22 @@ jobs:
             fi
 
             headless="${{ inputs.headless }}"
+            tags="${{ inputs.tags }}"
           else
             # push / pull_request → sensible defaults
             browsers=("chrome")
             headless="true"
+            tags=""
           fi
 
           json=$(printf '%s\n' "${browsers[@]}" | jq -R . | jq -sc .)
           echo "browsers=$json"   >> "$GITHUB_OUTPUT"
           echo "headless=$headless" >> "$GITHUB_OUTPUT"
+          echo "tags=$tags"       >> "$GITHUB_OUTPUT"
 
           echo "▶ Browsers to test : $json"
           echo "▶ Headless mode    : $headless"
+          echo "▶ Tags (marker)    : ${tags:(none - running ALL tests)}"
 
   # -------------------------------------------------------------------------
   # 2) Run the test suite once per selected browser (parallel matrix).
@@ -87,6 +92,7 @@ jobs:
       # --- Test configuration (read by config/config.py) --------------------
       BROWSER: ${{ matrix.browser }}
       HEADLESS: ${{ needs.setup.outputs.headless }}
+      TAGS: ${{ needs.setup.outputs.tags }}
 
       # --- Hardcoded credentials for the-internet.herokuapp.com -------------
       # These are the public demo credentials from the target site, safe to commit.
