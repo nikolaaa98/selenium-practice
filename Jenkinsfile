@@ -20,6 +20,11 @@ pipeline {
         booleanParam(name: 'EDGE',     defaultValue: false, description: 'Run tests on Microsoft Edge')
         booleanParam(name: 'HEADLESS', defaultValue: true,  description: 'Run browsers in headless mode')
     }
+    string(
+        name: 'TAGS',
+        defaultValue: '',
+        description: 'Pytest marker expression (e.g. "smoke", "regression and not slow", "smoke or sanity"). Leave empty to run all tests.'
+    )
 
     options {
         timestamps()
