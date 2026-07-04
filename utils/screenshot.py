@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from typing import Optional  # <-- Dodato za kompatibilnost sa Python 3.9
 
 from config.config import Config
 from utils.logger import get_logger
@@ -10,7 +11,7 @@ logger = get_logger(__name__)
 os.makedirs(Config.SCREENSHOTS_DIR, exist_ok=True)
 
 
-def take_screenshot(driver, test_name: str) -> str | None:
+def take_screenshot(driver, test_name: str) -> Optional[str]:  # <-- Promenjeno sa str | None
     """
     Takes a screenshot and returns the path to the saved file.
     :param driver: Selenium WebDriver instance
@@ -29,4 +30,4 @@ def take_screenshot(driver, test_name: str) -> str | None:
         return file_path
     except Exception as e:
         logger.error(f"Failed to take screenshot: {e}")
-        return None
+        return Noneå
