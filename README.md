@@ -18,3 +18,10 @@ docker run -d --name jenkins \
   -v "$HOME/Desktop/selenium-practice:/workspace/selenium-practice" \
   jenkins/jenkins:lts
 ``
+
+# 
+
+```bash
+brew services start jenkins-lts
+http://localhost:8080
+``
