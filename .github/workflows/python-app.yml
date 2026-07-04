@@ -75,7 +75,7 @@ jobs:
 
           echo "▶ Browsers to test : $json"
           echo "▶ Headless mode    : $headless"
-          echo "▶ Tags (marker)    : ${tags:(none - running ALL tests)}"
+          echo "▶ Tags (marker)    : ${tags:-none - running ALL tests}"
 
   # -------------------------------------------------------------------------
   # 2) Run the test suite once per selected browser (parallel matrix).
